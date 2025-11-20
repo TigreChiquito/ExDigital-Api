@@ -9,6 +9,7 @@ import java.util.List;
 
 @Entity
 @Table(name = "Product", schema = "public")  
+@Data
 @NoArgsConstructor
 @AllArgsConstructor
 public class Product {
