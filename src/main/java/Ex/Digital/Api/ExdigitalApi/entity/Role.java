@@ -6,7 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Entity
-@Table(name = "Role", schema = "public")  // ⚠️ CAMBIO AQUÍ
+@Table(name = "Role", schema = "public")  
 @Data
 @NoArgsConstructor
 @AllArgsConstructor

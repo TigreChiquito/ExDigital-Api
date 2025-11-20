@@ -8,8 +8,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 @Entity
-@Table(name = "Product", schema = "public")  // ⚠️ CAMBIO AQUÍ
-@Data
+@Table(name = "Product", schema = "public")  
 @NoArgsConstructor
 @AllArgsConstructor
 public class Product {
