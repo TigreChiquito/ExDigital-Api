@@ -1,6 +1,7 @@
 package Ex.Digital.Api.ExdigitalApi.entity;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Min;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -28,6 +29,7 @@ public class ProductImages {
     private String url;
     
     @Column(name = "order_position", nullable = false)
+    @Min(value = 1, message = "La posición debe ser mayor a 0")  
     private Integer orderPosition;
     
     @Column(name = "is_primary", nullable = false)
