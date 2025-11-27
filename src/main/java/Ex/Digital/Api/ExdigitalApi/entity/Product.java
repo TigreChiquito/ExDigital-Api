@@ -22,7 +22,7 @@ public class Product {
     @Column(name = "name", nullable = false)
     private String name;
     
-    @Column(name = "value", nullable = false) 
+    @Column(name = "price", nullable = false) 
     private Integer value;
     
     @ManyToOne

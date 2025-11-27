@@ -16,18 +16,19 @@ import java.util.Map;
 public class JwtAuthenticationEntryPoint implements AuthenticationEntryPoint {
 
     @Override
-    public void commence(HttpServletRequest request, HttpServletResponse response,
-                         AuthenticationException authException) throws IOException, ServletException {
+    public void commence(HttpServletRequest request,
+                        HttpServletResponse response,
+                        AuthenticationException authException) throws IOException, ServletException {
         
-        response.setContentType("application/json");
+        response.setContentType("application/json;charset=UTF-8");
         response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
 
-        Map<String, Object> data = new HashMap<>();
-        data.put("success", false);
-        data.put("message", "No autorizado. Por favor, inicie sesión");
-        data.put("error", authException.getMessage());
+        Map<String, Object> errorResponse = new HashMap<>();
+        errorResponse.put("success", false);
+        errorResponse.put("message", "No autorizado. Por favor, inicie sesión");
+        errorResponse.put("data", null);
 
         ObjectMapper mapper = new ObjectMapper();
-        response.getOutputStream().println(mapper.writeValueAsString(data));
+        response.getWriter().write(mapper.writeValueAsString(errorResponse));
     }
 }
