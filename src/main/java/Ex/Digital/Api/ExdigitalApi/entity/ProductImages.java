@@ -9,7 +9,7 @@ import java.time.LocalDateTime;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 @Entity
-@Table(name = "Product_Images", schema = "public")  
+@Table(name = "product_images", schema = "public")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor

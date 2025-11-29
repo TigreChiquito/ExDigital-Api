@@ -20,7 +20,7 @@ public interface ProductRepository extends JpaRepository<Product, Integer> {
     @Query("SELECT p FROM Product p WHERE LOWER(p.name) LIKE LOWER(CONCAT('%', :keyword, '%')) AND p.isActive = true")
     List<Product> searchByName(@Param("keyword") String keyword);
 
-    // --- NUEVO: Consulta optimizada para evitar el problema N+1 ---
+    // 🔥 SOLUCIÓN DE VELOCIDAD: Traer todo junto
     @Query("SELECT DISTINCT p FROM Product p " +
            "LEFT JOIN FETCH p.images " +
            "LEFT JOIN FETCH p.category " +

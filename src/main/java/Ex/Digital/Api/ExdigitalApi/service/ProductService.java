@@ -169,7 +169,6 @@ public class ProductService {
         dto.setStock(product.getStock());
         dto.setIsActive(product.getIsActive());
 
-        // Calcular precio final con descuento
         BigDecimal finalPrice = new BigDecimal(product.getValue());
         if (product.getDiscount() != null && product.getDiscount().getActive()) {
             dto.setDiscount(product.getDiscount().getDiscount());
@@ -182,8 +181,7 @@ public class ProductService {
         }
         dto.setFinalPrice(finalPrice);
 
-        // OPTIMIZACIÓN: Usar la lista de imágenes ya cargada en la entidad
-        // en lugar de llamar al repositorio nuevamente.
+        // 🔥 PROCESAMIENTO EN MEMORIA (Sin ir a la DB de nuevo)
         if (product.getImages() != null && !product.getImages().isEmpty()) {
             List<String> imageUrls = product.getImages().stream()
                     .sorted(Comparator.comparingInt(ProductImages::getOrderPosition))
