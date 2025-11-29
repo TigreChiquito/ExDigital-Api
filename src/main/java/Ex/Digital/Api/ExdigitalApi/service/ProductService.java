@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -34,36 +35,43 @@ public class ProductService {
     @Autowired
     private ProductImagesRepository productImagesRepository;
 
+    // Usamos la query optimizada aquí
+    @Transactional(readOnly = true)
     public List<ProductDto> getAllProducts() {
-        return productRepository.findAll().stream()
+        return productRepository.findAllWithRelations().stream()
                 .map(this::convertToDto)
                 .collect(Collectors.toList());
     }
 
+    @Transactional(readOnly = true)
     public List<ProductDto> getActiveProducts() {
         return productRepository.findByIsActive(true).stream()
                 .map(this::convertToDto)
                 .collect(Collectors.toList());
     }
 
+    @Transactional(readOnly = true)
     public List<ProductDto> getAvailableProducts() {
         return productRepository.findAvailableProducts().stream()
                 .map(this::convertToDto)
                 .collect(Collectors.toList());
     }
 
+    @Transactional(readOnly = true)
     public ProductDto getProductById(Integer id) {
         Product product = productRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Producto no encontrado"));
         return convertToDto(product);
     }
 
+    @Transactional(readOnly = true)
     public List<ProductDto> getProductsByCategory(Integer categoryId) {
         return productRepository.findByCategoryIdCategories(categoryId).stream()
                 .map(this::convertToDto)
                 .collect(Collectors.toList());
     }
 
+    @Transactional(readOnly = true)
     public List<ProductDto> searchProducts(String keyword) {
         return productRepository.searchByName(keyword).stream()
                 .map(this::convertToDto)
@@ -151,44 +159,45 @@ public class ProductService {
     }
 
     private ProductDto convertToDto(Product product) {
-    ProductDto dto = new ProductDto();
-    dto.setIdProduct(product.getIdProduct());
-    dto.setName(product.getName());
-    dto.setValue(new BigDecimal(product.getValue())); // Convertir int a BigDecimal
-    dto.setCategoryName(product.getCategory().getName());
-    dto.setCategoryId(product.getCategory().getIdCategories());
-    dto.setDescription(product.getDescription());
-    dto.setStock(product.getStock());
-    dto.setIsActive(product.getIsActive());
+        ProductDto dto = new ProductDto();
+        dto.setIdProduct(product.getIdProduct());
+        dto.setName(product.getName());
+        dto.setValue(new BigDecimal(product.getValue()));
+        dto.setCategoryName(product.getCategory().getName());
+        dto.setCategoryId(product.getCategory().getIdCategories());
+        dto.setDescription(product.getDescription());
+        dto.setStock(product.getStock());
+        dto.setIsActive(product.getIsActive());
 
-    // Calcular precio final con descuento
-    BigDecimal finalPrice = new BigDecimal(product.getValue());
-    if (product.getDiscount() != null && product.getDiscount().getActive()) {
-        dto.setDiscount(product.getDiscount().getDiscount());
-        dto.setDiscountName(product.getDiscount().getName());
-        
-        BigDecimal discountAmount = finalPrice
-                .multiply(product.getDiscount().getDiscount())
-                .divide(new BigDecimal("100"));
-        finalPrice = finalPrice.subtract(discountAmount);
+        // Calcular precio final con descuento
+        BigDecimal finalPrice = new BigDecimal(product.getValue());
+        if (product.getDiscount() != null && product.getDiscount().getActive()) {
+            dto.setDiscount(product.getDiscount().getDiscount());
+            dto.setDiscountName(product.getDiscount().getName());
+            
+            BigDecimal discountAmount = finalPrice
+                    .multiply(product.getDiscount().getDiscount())
+                    .divide(new BigDecimal("100"));
+            finalPrice = finalPrice.subtract(discountAmount);
+        }
+        dto.setFinalPrice(finalPrice);
+
+        // OPTIMIZACIÓN: Usar la lista de imágenes ya cargada en la entidad
+        // en lugar de llamar al repositorio nuevamente.
+        if (product.getImages() != null && !product.getImages().isEmpty()) {
+            List<String> imageUrls = product.getImages().stream()
+                    .sorted(Comparator.comparingInt(ProductImages::getOrderPosition))
+                    .map(ProductImages::getUrl)
+                    .collect(Collectors.toList());
+            
+            dto.setImageUrls(imageUrls);
+            
+            product.getImages().stream()
+                    .filter(ProductImages::getIsPrimary)
+                    .findFirst()
+                    .ifPresent(img -> dto.setPrimaryImage(img.getUrl()));
+        }
+
+        return dto;
     }
-    dto.setFinalPrice(finalPrice);
-
-    // Obtener imágenes
-    List<ProductImages> images = productImagesRepository
-            .findByProductIdProductOrderByOrderPositionAsc(product.getIdProduct());
-    
-    if (!images.isEmpty()) {
-        dto.setImageUrls(images.stream()
-                .map(ProductImages::getUrl)
-                .collect(Collectors.toList()));
-        
-        images.stream()
-                .filter(ProductImages::getIsPrimary)
-                .findFirst()
-                .ifPresent(img -> dto.setPrimaryImage(img.getUrl()));
-    }
-
-    return dto;
-}
 }
